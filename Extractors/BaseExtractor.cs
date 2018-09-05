@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Xml;
 using ao_id_extractor.Helpers;
 using System.Windows.Forms;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.Win32;
 
 namespace ao_id_extractor.Extractors
