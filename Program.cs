@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
@@ -75,12 +76,14 @@ namespace ao_id_extractor
         static void Main(string[] args)
         {
             List<string> cmds = ParseCommandline(args);
-
+            
             if (cmds == null)
             {
                 Console.Read();
                 return;
             }
+
+            DeleteOldFilesAndDirs();
 
             if (cmds[2] == "")
                 cmds[2] = Directory.GetCurrentDirectory();
@@ -96,19 +99,58 @@ namespace ao_id_extractor
                     break;
             }
 
-            if (cmds[0] == "0" || cmds[0] == "3")
+            if (cmds[0] == "0" || cmds[0] == "4")
             {
+                Console.Out.WriteLine("Starting Extraction of Items as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
                 new ItemExtractor(cmds[2], exportType, cmds[3]).Extract();
+                Console.Out.WriteLine("--- Extraction Complete! ---");
             }
 
-            if (cmds[0] == "1" || cmds[0] == "3")
+            if (cmds[0] == "1" || cmds[0] == "4")
             {
+                Console.Out.WriteLine("Starting Extraction of Locations as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
                 new LocationExtractor(cmds[2], exportType, cmds[3]).Extract();
+                Console.Out.WriteLine("--- Extraction Complete! ---");
             }
 
-            if (cmds[0] == "2" || cmds[0] == "3")
+            if (cmds[0] == "2" || cmds[0] == "4")
             {
+                Console.Out.WriteLine("Starting Extraction of Resources as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
                 new ResourceExtractor(cmds[2], exportType, cmds[3]).Extract();
+                Console.Out.WriteLine("--- Extraction Complete! ---");
+            }
+
+            if (cmds[0] == "3")
+            {
+                Console.Out.WriteLine("Starting Extraction of All Files as XML...");
+                new BinaryDumper(cmds[2], cmds[3]).Extract();
+                Console.Out.WriteLine("--- Extraction Complete! ---");
+            }
+
+            Console.Out.WriteLine("\nPress Any Key to Quit");
+            Console.ReadKey();
+        }
+
+        static void DeleteOldFilesAndDirs()
+        {
+            DirectoryInfo baseDir = new DirectoryInfo(Path.GetDirectoryName(Application.ExecutablePath));
+            if (baseDir.Exists)
+            {
+                //delete sub directories:
+                foreach (var dir in baseDir.EnumerateDirectories())
+                {
+                    System.IO.Directory.Delete(dir.FullName, true);
+                }
+
+                string name = Process.GetCurrentProcess().MainModule.FileName;
+                string app = System.IO.Path.GetFileName(name);
+
+                //delete files:
+                foreach (var file in baseDir.GetFiles())
+                {
+                    if (file.Name != app && file.Extension != ".md" && file.Extension != ".pdb")
+                        file.Delete();
+                }
             }
         }
     }

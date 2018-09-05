@@ -6,8 +6,9 @@ This tool allows you to extract the ID's and Names of Items and Locations from t
 * Visual Studio 2017 (to build)
 
 ## How to use:
-`ao-id-extractor.exe modeID outFormat [outFolder]`
+`ao-id-extractor.exe modeID outFormat [outFolder] [gameFolder]`
 
-modeID          `0=Item Extraction, 1= Location Extraction, 2=Both`  
-outFormat      `l=Text List, j=JSON`  
+modeID          `0=Item Extraction, 1= Location Extraction, 2=Resource, 3=Dump All, 4=Extract Items & Locations & Resource`  
+outFormat       `l=Text List, j=JSON; Parameter does not matter for Dump All`  
 [outFolder]     `Optional: Output folder path. Default: current directory`
+[gameFolder]    `Optional: Location of the main AlbionOnline folder`

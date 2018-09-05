@@ -88,12 +88,14 @@ namespace ao_id_extractor.Extractors
         {
             string output = BinaryDecrypter.DecryptBinaryFile(binFile);
             string binFileWOE = Path.GetFileNameWithoutExtension(binFile);
+            string finalOutPath = Path.Combine(OutputFolderPath, binFileWOE + ".xml");
+            Directory.CreateDirectory(Path.GetDirectoryName(finalOutPath));
 
-            StreamWriter sw = File.CreateText(binFileWOE + ".xml");
+            StreamWriter sw = File.CreateText(finalOutPath);
             sw.Write(output);
             sw.Close();
 
-            return binFileWOE + ".xml";
+            return finalOutPath;
         }
 
         private void WriteToFile(List<IDContainer> items)

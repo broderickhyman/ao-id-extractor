@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Extractors\BinaryDecrypter.cs" />
+    <Compile Include="Extractors\BinaryDumper.cs" />
     <Compile Include="Extractors\ResourceExtractor.cs" />
     <Compile Include="Helpers\ExtensionMethods.cs" />
     <Compile Include="Extractors\LocationExtractor.cs" />
