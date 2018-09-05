@@ -9,6 +9,8 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace ao_id_extractor
@@ -66,7 +68,8 @@ namespace ao_id_extractor
 
         private void btnExtract_Click(object sender, EventArgs e)
         {
-            Program.RunExtractions();
+
+            Invoke(new Action(Program.RunExtractions));
         }
 
         private void cbExtractionMode_SelectedIndexChanged(object sender, EventArgs e)

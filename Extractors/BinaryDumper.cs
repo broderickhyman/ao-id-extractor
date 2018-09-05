@@ -41,7 +41,7 @@ namespace ao_id_extractor.Extractors
             string binFileWOE = Path.GetFileNameWithoutExtension(binFile);
             string outSubdirs = Path.GetDirectoryName(Path.Combine(Program.OutputFolderPath, subdir));
 
-            Console.Out.WriteLine("Extracting " + binFileWOE + ".bin...\n");
+            Console.Out.WriteLine("Extracting " + binFileWOE + ".bin...");
 
             if (outSubdirs != "")
                 Directory.CreateDirectory(outSubdirs);
