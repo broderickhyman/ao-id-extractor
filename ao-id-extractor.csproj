@@ -5,7 +5,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{F9D1D90B-7BC1-476C-842C-B0082FC86872}</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <RootNamespace>ao_id_extractor</RootNamespace>
     <AssemblyName>ao-id-extractor</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
@@ -49,10 +49,18 @@
     <Compile Include="Extractors\BinaryDecrypter.cs" />
     <Compile Include="Extractors\BinaryDumper.cs" />
     <Compile Include="Extractors\ResourceExtractor.cs" />
-    <Compile Include="Helpers\ExtensionMethods.cs" />
+    <Compile Include="Helpers\ControlWriter.cs" />
+    <Compile Include="Helpers\JSONHelper.cs" />
     <Compile Include="Extractors\LocationExtractor.cs" />
     <Compile Include="Extractors\ItemExtractor.cs" />
     <Compile Include="Extractors\BaseExtractor.cs" />
+    <Compile Include="Helpers\MultiTextWriter.cs" />
+    <Compile Include="MainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainWindow.Designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -62,6 +70,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

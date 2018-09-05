@@ -1,4 +1,5 @@
 ﻿using ao_id_extractor.Extractors;
+using ao_id_extractor.Helpers;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -6,18 +7,61 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 
 namespace ao_id_extractor
 {
+    public static class ProcessExtensions
+    {
+        private static string FindIndexedProcessName(int pid)
+        {
+            var processName = Process.GetProcessById(pid).ProcessName;
+            var processesByName = Process.GetProcessesByName(processName);
+            string processIndexdName = null;
+
+            for (var index = 0; index < processesByName.Length; index++)
+            {
+                processIndexdName = index == 0 ? processName : processName + "#" + index;
+                var processId = new PerformanceCounter("Process", "ID Process", processIndexdName);
+                if ((int)processId.NextValue() == pid)
+                {
+                    return processIndexdName;
+                }
+            }
+
+            return processIndexdName;
+        }
+
+        private static Process FindPidFromIndexedProcessName(string indexedProcessName)
+        {
+            var parentId = new PerformanceCounter("Process", "Creating Process ID", indexedProcessName);
+            return Process.GetProcessById((int)parentId.NextValue());
+        }
+
+        public static Process Parent(this Process process)
+        {
+            return FindPidFromIndexedProcessName(FindIndexedProcessName(process.Id));
+        }
+    }
+
     class Program
     {
+        [DllImport("kernel32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool AllocConsole();
+
+        public static string OutputFolderPath { get; set; }
+        public static ExportType ExportType { get; set; }
+        public static ExportMode ExportMode { get; set; }
+        public static string MainGameFolder { get; set; }
+
         static void PrintCmdHelp()
         {
             Console.WriteLine("How to use:\nao-id-extractor.exe modeID outFormat [outFolder]\n" +
-                "modeID\t\t#Extraction 0=Item, 1=Location, 2=Resource, 3=All\n" +
+                "modeID\t\t#Extraction 0=Item Extraction, 1=Location Extraction, 2=Resource Extraction, 3=Dump All, 4=Extract Items & Locations & Resource\n" +
                 "outFormat\t#l=Text List, j=JSON b=Both\n" +
                 "[outFolder]\t#OPTIONAL: Output folder path. Default: current directory\n" +
                 "[gameFolder]\t#OPTIONAL: Location of the main AlbionOnline folder");
@@ -73,62 +117,124 @@ namespace ao_id_extractor
             return new List<string>() { modeID, outFormat, outFolder, gameFolder };
         }
 
+        [STAThread]
         static void Main(string[] args)
         {
-            List<string> cmds = ParseCommandline(args);
-            
-            if (cmds == null)
-            {
-                Console.Read();
-                return;
-            }
+            OutputFolderPath = "";
+            MainGameFolder = "";
 
+            string parentName = ProcessExtensions.Parent(Process.GetCurrentProcess()).ProcessName;
+
+            
             DeleteOldFilesAndDirs();
 
-            if (cmds[2] == "")
-                cmds[2] = Directory.GetCurrentDirectory();
-
-            var exportType = ExportType.Both;
-            switch (cmds[1])
+           
+            if (parentName != "cmd")
             {
-                case "l":
-                    exportType = ExportType.TextList;
-                    break;
-                case "j":
-                    exportType = ExportType.Json;
-                    break;
+                MainWindow mainWindow = new MainWindow();
+                Application.EnableVisualStyles();
+                Console.SetOut(new MultiTextWriter(new ControlWriter(mainWindow.tbConsole), Console.Out));
+                Application.Run(mainWindow);
+                return;
             }
-
-            if (cmds[0] == "0" || cmds[0] == "4")
+            else
             {
-                Console.Out.WriteLine("Starting Extraction of Items as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
-                new ItemExtractor(cmds[2], exportType, cmds[3]).Extract();
-                Console.Out.WriteLine("--- Extraction Complete! ---");
-            }
+                AllocConsole();
+                List<string> cmds = ParseCommandline(args);
 
-            if (cmds[0] == "1" || cmds[0] == "4")
-            {
-                Console.Out.WriteLine("Starting Extraction of Locations as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
-                new LocationExtractor(cmds[2], exportType, cmds[3]).Extract();
-                Console.Out.WriteLine("--- Extraction Complete! ---");
-            }
+                if (cmds == null)
+                {
+                    Console.Out.WriteLine("\nPress Any Key to Quit");
+                    Console.ReadKey();
+                    return;
+                }
 
-            if (cmds[0] == "2" || cmds[0] == "4")
-            {
-                Console.Out.WriteLine("Starting Extraction of Resources as " + (cmds[1] == "l" ? "Text List" : "Json") + "...");
-                new ResourceExtractor(cmds[2], exportType, cmds[3]).Extract();
-                Console.Out.WriteLine("--- Extraction Complete! ---");
-            }
+                if (string.IsNullOrWhiteSpace(cmds[2]))
+                    cmds[2] = Directory.GetCurrentDirectory();
 
-            if (cmds[0] == "3")
-            {
-                Console.Out.WriteLine("Starting Extraction of All Files as XML...");
-                new BinaryDumper(cmds[2], cmds[3]).Extract();
-                Console.Out.WriteLine("--- Extraction Complete! ---");
+                OutputFolderPath = cmds[2];
+
+                if (string.IsNullOrWhiteSpace(cmds[1]) || string.IsNullOrWhiteSpace(cmds[0]))
+                {
+                    Console.Out.WriteLine("\nPress Any Key to Quit");
+                    Console.ReadKey();
+                    return;
+                }
+
+                var exportType = ExportType.Both;
+                switch (cmds[1])
+                {
+                    case "l":
+                        exportType = ExportType.TextList;
+                        break;
+                    case "j":
+                        exportType = ExportType.Json;
+                        break;
+                }
+
+                ExportType = exportType;
+
+                if (int.Parse(cmds[0]) > 4 || int.Parse(cmds[0]) < 0)
+                    return;
+
+                ExportMode = (ExportMode)int.Parse(cmds[0]);
+
+                RunExtractions();                
             }
 
             Console.Out.WriteLine("\nPress Any Key to Quit");
             Console.ReadKey();
+        }
+
+        public static void RunExtractions()
+        {
+            Console.Out.WriteLine("#---- Starting Extraction Operation ----#");
+
+            string exportTypeString = "";
+            if (ExportType == ExportType.TextList)
+                exportTypeString = "Text List";
+            else if (ExportType == ExportType.Json)
+                exportTypeString = "JSON";
+            else
+                exportTypeString = "Text List and JSON";
+
+            switch (ExportMode)
+            {
+                case ExportMode.Item_Extraction:
+                    Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
+                    new ItemExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+                    break;
+                case ExportMode.Location_Extraction:
+                    Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
+                    new LocationExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+                    break;
+                case ExportMode.Resource_Extraction:
+                    Console.Out.WriteLine("--- Starting Extraction of Resources as " + exportTypeString + " ---");
+                    new ResourceExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+                    break;
+                case ExportMode.Dump_All_XML:
+                    Console.Out.WriteLine("--- Starting Extraction of All Files as XML ---");
+                    new BinaryDumper().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+                    break;
+                case ExportMode.Extract_Items_Locations_Resource:
+                    Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
+                    new ItemExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+
+                    Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
+                    new LocationExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+
+                    Console.Out.WriteLine("--- Starting Extraction of Resources as " + exportTypeString + " ---");
+                    new ResourceExtractor().Extract();
+                    Console.Out.WriteLine("--- Extraction Complete! ---");
+                    break;
+            }
+            Console.Out.WriteLine("#---- Finished Extraction Operation ----#");
         }
 
         static void DeleteOldFilesAndDirs()
@@ -148,7 +254,7 @@ namespace ao_id_extractor
                 //delete files:
                 foreach (var file in baseDir.GetFiles())
                 {
-                    if (file.Name != app && file.Extension != ".md" && file.Extension != ".pdb")
+                    if (file.Extension != ".exe" && file.Extension != ".md" && file.Extension != ".pdb")
                         file.Delete();
                 }
             }

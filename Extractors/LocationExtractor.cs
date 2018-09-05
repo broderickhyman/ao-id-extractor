@@ -12,7 +12,7 @@ namespace ao_id_extractor.Extractors
 {
     public class LocationExtractor : BaseExtractor
     {
-        public LocationExtractor(string outputFolderPath, ExportType exportType, string gameFolder) : base(outputFolderPath, exportType, gameFolder)
+        public LocationExtractor() : base()
         {
 
         }
@@ -53,7 +53,7 @@ namespace ao_id_extractor.Extractors
 
         protected override string GetBinFilePath()
         {
-            return Path.Combine(MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\cluster\world.bin");
+            return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\cluster\world.bin");
         }
     }
 }

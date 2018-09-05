@@ -15,7 +15,7 @@ namespace ao_id_extractor.Extractors
         private readonly string LocalizationItemPrefix = "@ITEMS_";
         private readonly string LocalizationItemDescPostfix = "_DESC";
 
-        public ItemExtractor(string outputFolderPath, ExportType exportType, string gameFolder) : base(outputFolderPath, exportType, gameFolder)
+        public ItemExtractor() : base()
         {
         }
 
@@ -100,7 +100,7 @@ namespace ao_id_extractor.Extractors
 
         private void ExtractAndSetLocalization(List<IDContainer> itemsList)
         {
-            string localizationXML = BinaryDecrypter.DecryptBinaryFile(Path.Combine(MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\localization.bin"));
+            string localizationXML = BinaryDecrypter.DecryptBinaryFile(Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\localization.bin"));
 
             // Param 0 is the xml file
             byte[] encodedString = Encoding.UTF8.GetBytes(localizationXML);
@@ -188,7 +188,7 @@ namespace ao_id_extractor.Extractors
 
         protected override string GetBinFilePath()
         {
-            return Path.Combine(MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\items.bin");
+            return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\items.bin");
         }
     }
 }

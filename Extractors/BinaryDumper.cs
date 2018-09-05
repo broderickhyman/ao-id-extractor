@@ -10,18 +10,12 @@ namespace ao_id_extractor.Extractors
 {
     public class BinaryDumper
     {
-        protected string OutputFolderPath { get; set; }
-        protected string MainGameFolder { get; set; }
-
-        public BinaryDumper(string outputFolderPath, string gameFolder)
+        public BinaryDumper()
         {
-            OutputFolderPath = outputFolderPath;
-            MainGameFolder = gameFolder;
-
-            if (string.IsNullOrWhiteSpace(MainGameFolder))
+            if (string.IsNullOrWhiteSpace(Program.MainGameFolder))
             {
                 string obj = (string)Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SandboxAlbionOnline", false).GetValue("DisplayIcon");
-                MainGameFolder = Path.Combine(Path.GetDirectoryName(obj.Trim('\"')), "..");
+                Program.MainGameFolder = Path.Combine(Path.GetDirectoryName(obj.Trim('\"')), "..");
             }
         }
 
@@ -38,15 +32,19 @@ namespace ao_id_extractor.Extractors
 
         private string GetBinFilePath()
         {
-            return Path.Combine(MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData");
+            return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData");
         }
 
         private string DecryptBinFile(string binFile, string subdir)
-        {
+        {          
             string output = BinaryDecrypter.DecryptBinaryFile(binFile);
             string binFileWOE = Path.GetFileNameWithoutExtension(binFile);
-            string outSubdirs = Path.GetDirectoryName(OutputFolderPath + "\\" + subdir);
-            Directory.CreateDirectory(outSubdirs);
+            string outSubdirs = Path.GetDirectoryName(Path.Combine(Program.OutputFolderPath, subdir));
+
+            Console.Out.WriteLine("Extracting " + binFileWOE + ".bin...\n");
+
+            if (outSubdirs != "")
+                Directory.CreateDirectory(outSubdirs);
             string finalOutPath = Path.Combine(outSubdirs, binFileWOE + ".xml");
 
             StreamWriter sw = File.CreateText(finalOutPath);
