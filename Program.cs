@@ -9,6 +9,7 @@ using System.Linq;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -47,7 +48,7 @@ namespace ao_id_extractor
         }
     }
 
-    class Program
+    public class Program
     {
         [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -254,7 +255,7 @@ namespace ao_id_extractor
                 //delete files:
                 foreach (var file in baseDir.GetFiles())
                 {
-                    if (file.Extension != ".exe" && file.Extension != ".md" && file.Extension != ".pdb")
+                    if (file.Extension != ".exe" && file.Extension != ".md" && file.Extension != ".pdb" && file.Extension != ".bat")
                         file.Delete();
                 }
             }
