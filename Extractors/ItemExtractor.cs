@@ -93,13 +93,9 @@ namespace ao_id_extractor.Extractors
 
     private void ExtractAndSetLocalization(List<IDContainer> itemsList)
     {
-      var localizationXML = BinaryDecrypter.DecryptBinaryFile(Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\localization.bin"));
-
-      // Param 0 is the xml file
-      var encodedString = Encoding.UTF8.GetBytes(localizationXML);
-
       // Put the byte array into a stream and rewind it to the beginning
-      var ms = new MemoryStream(encodedString);
+      var ms = new MemoryStream();
+      BinaryDecrypter.DecryptBinaryFile(Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\localization.bin"), ms);
       ms.Flush();
       ms.Position = 0;
 

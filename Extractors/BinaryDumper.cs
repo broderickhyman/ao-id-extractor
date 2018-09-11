@@ -33,7 +33,6 @@ namespace ao_id_extractor.Extractors
 
     private string DecryptBinFile(string binFile, string subdir)
     {
-      var output = BinaryDecrypter.DecryptBinaryFile(binFile);
       var binFileWOE = Path.GetFileNameWithoutExtension(binFile);
       var outSubdirs = Path.GetDirectoryName(Path.Combine(Program.OutputFolderPath, subdir));
 
@@ -43,9 +42,10 @@ namespace ao_id_extractor.Extractors
         Directory.CreateDirectory(outSubdirs);
       var finalOutPath = Path.Combine(outSubdirs, binFileWOE + ".xml");
 
-      var sw = File.CreateText(finalOutPath);
-      sw.Write(output);
-      sw.Close();
+      using (var outputFile = File.OpenWrite(finalOutPath))
+      {
+        BinaryDecrypter.DecryptBinaryFile(binFile, outputFile);
+      }
 
       return finalOutPath;
     }

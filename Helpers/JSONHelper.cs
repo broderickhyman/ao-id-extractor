@@ -72,7 +72,7 @@ namespace ao_id_extractor.Helpers
     {
       var serializer = new JavaScriptSerializer
       {
-        MaxJsonLength = Int32.MaxValue
+        MaxJsonLength = int.MaxValue
       };
       return serializer.Serialize(obj);
     }
@@ -82,7 +82,7 @@ namespace ao_id_extractor.Helpers
       var serializer = new JavaScriptSerializer
       {
         RecursionLimit = recursionDepth,
-        MaxJsonLength = Int32.MaxValue
+        MaxJsonLength = int.MaxValue
       };
       return serializer.Serialize(obj);
     }
