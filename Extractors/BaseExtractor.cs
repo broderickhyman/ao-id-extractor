@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Windows.Forms;
 using System.Xml;
 
@@ -52,7 +53,7 @@ namespace ao_id_extractor.Extractors
     }
 
     protected abstract string GetBinFilePath();
-    protected abstract List<IDContainer> ExtractFromXML(string xmlFile, bool withLocal = true);
+    protected abstract void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true);
 
     protected XmlElement FindElement(XmlNode node, string elementName)
     {
@@ -69,20 +70,53 @@ namespace ao_id_extractor.Extractors
 
     public void Extract(bool withLocal = true)
     {
-      var s = DecryptBinFile(GetBinFilePath());
-      var ls = ExtractFromXML(s, withLocal);
-      File.Delete(s);
+      var xmlPath = DecryptBinFile(GetBinFilePath());
+      using (var inputFile = File.OpenRead(xmlPath))
+      {
+        var streamTypes = new List<StreamType>();
+        if (Program.ExportType == ExportType.TextList || Program.ExportType == ExportType.Both)
+        {
+          const ExportType exportType = ExportType.TextList;
+          streamTypes.Add(new StreamType
+          {
+            Stream = GetExportStream(exportType),
+            ExportType = exportType
+          });
+        }
+        if (Program.ExportType == ExportType.Json || Program.ExportType == ExportType.Both)
+        {
+          const ExportType exportType = ExportType.Json;
+          streamTypes.Add(new StreamType
+          {
+            Stream = GetExportStream(exportType),
+            ExportType = exportType
+          });
+        }
+        var multiStream = new MultiStream(streamTypes.ToArray());
 
-      WriteToFile(ls);
+        ExtractFromXML(inputFile, multiStream, WriteItem, withLocal);
+
+        foreach (var streamType in streamTypes)
+        {
+          CloseExportStream(streamType.Stream, streamType.ExportType);
+          streamType.Stream.Close();
+        }
+      }
+      File.Delete(xmlPath);
     }
 
-    public List<IDContainer> PureExtract(bool withLocal = true)
-    {
-      var s = DecryptBinFile(GetBinFilePath());
-      return ExtractFromXML(s, withLocal);
-    }
+    //public List<IDContainer> PureExtract(bool withLocal = true)
+    //{
+    //  using (var ms = new MemoryStream())
+    //  {
+    //    DecryptBinFile(GetBinFilePath(), ms);
+    //    ms.Flush();
+    //    ms.Position = 0;
+    //    return ExtractFromXML(ms, withLocal);
+    //  }
+    //}
 
-    private string DecryptBinFile(string binFile)
+    public static string DecryptBinFile(string binFile)
     {
       var binFileWOE = Path.GetFileNameWithoutExtension(binFile);
 
@@ -91,15 +125,15 @@ namespace ao_id_extractor.Extractors
       var finalOutPath = Path.Combine(Program.OutputFolderPath, binFileWOE + ".xml");
       Directory.CreateDirectory(Path.GetDirectoryName(finalOutPath));
 
-      using (var outputFile = File.OpenWrite(finalOutPath))
+      using (var outputStream = File.OpenWrite(finalOutPath))
       {
-        BinaryDecrypter.DecryptBinaryFile(binFile, outputFile);
+        BinaryDecrypter.DecryptBinaryFile(binFile, outputStream);
       }
 
       return finalOutPath;
     }
 
-    private void WriteToFile(List<IDContainer> items)
+    private Stream GetExportStream(ExportType exportType)
     {
       var filePathWithoutExtension = Path.Combine(Program.OutputFolderPath, Path.GetFileNameWithoutExtension(GetBinFilePath()));
       if (!Directory.Exists(Path.GetDirectoryName(filePathWithoutExtension)))
@@ -107,23 +141,55 @@ namespace ao_id_extractor.Extractors
         var di = Directory.CreateDirectory(Path.GetDirectoryName(filePathWithoutExtension));
       }
 
-      if (Program.ExportType == ExportType.TextList || Program.ExportType == ExportType.Both)
+      if (exportType == ExportType.TextList)
       {
-        using (var sw = File.CreateText(filePathWithoutExtension + ".txt"))
-        {
-          foreach (var i in items)
-          {
-            sw.WriteLine("{0}:{1}", i.Index, i.UniqueName);
-          }
-        }
+        return File.OpenWrite(filePathWithoutExtension + ".txt");
       }
-      if (Program.ExportType == ExportType.Json || Program.ExportType == ExportType.Both)
+      else if (exportType == ExportType.Json)
       {
-        using (var sw = File.CreateText(filePathWithoutExtension + ".json"))
-        {
-          sw.Write(JSONHelper.FormatJson(items.ToJSON()));
-        }
+        var stream = File.OpenWrite(filePathWithoutExtension + ".json");
+        WriteString(stream, "[" + Environment.NewLine);
+        return stream;
       }
+      return File.OpenWrite(filePathWithoutExtension + ".txt");
+    }
+
+    private void CloseExportStream(Stream stream, ExportType exportType)
+    {
+      if (exportType == ExportType.Json)
+      {
+        WriteString(stream, "]");
+      }
+    }
+
+    private void WriteItem(MultiStream multiStream, IDContainer item)
+    {
+      foreach (var streamType in multiStream.StreamTypes)
+      {
+        var output = new StringBuilder();
+        if (streamType.ExportType == ExportType.TextList)
+        {
+          output.AppendFormat("{0}:{1}", item.Index, item.UniqueName).AppendLine();
+        }
+        else if (streamType.ExportType == ExportType.Json)
+        {
+          output.Append(JSONHelper.FormatJson(item.ToJSON())).AppendLine(",");
+        }
+        WriteString(streamType, output.ToString());
+        output.Clear();
+      }
+    }
+
+    private void WriteString(StreamType stream, string val)
+    {
+      var buffer = Encoding.UTF8.GetBytes(val);
+      stream.Stream.Write(buffer, 0, buffer.Length);
+    }
+
+    private void WriteString(Stream stream, string val)
+    {
+      var buffer = Encoding.UTF8.GetBytes(val);
+      stream.Write(buffer, 0, buffer.Length);
     }
   }
 }

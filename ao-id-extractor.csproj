@@ -56,6 +56,7 @@
     <Compile Include="Extractors\LocationExtractor.cs" />
     <Compile Include="Extractors\ItemExtractor.cs" />
     <Compile Include="Extractors\BaseExtractor.cs" />
+    <Compile Include="Helpers\MultiStream.cs" />
     <Compile Include="Helpers\MultiTextWriter.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>

@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using ao_id_extractor.Helpers;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -13,21 +15,10 @@ namespace ao_id_extractor.Extractors
 
     }
 
-    protected override List<IDContainer> ExtractFromXML(string xmlFile, bool withLocal = true)
+    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true)
     {
-      var outputList = new HashSet<IDContainer>();
-
-      // Param 0 is the xml file
-      var encodedString = Encoding.UTF8.GetBytes(File.ReadAllText(xmlFile, Encoding.UTF8));
-
-      // Put the byte array into a stream and rewind it to the beginning
-      var ms = new MemoryStream(encodedString);
-      ms.Flush();
-      ms.Position = 0;
-
-      // Build the XmlDocument from the MemorySteam of UTF-8 encoded bytes
       var xmlDoc = new XmlDocument();
-      xmlDoc.Load(ms);
+      xmlDoc.Load(inputXmlFile);
 
       var rootNode = xmlDoc.LastChild.FirstChild;
 
@@ -38,13 +29,13 @@ namespace ao_id_extractor.Extractors
           var locID = node.Attributes["id"].Value;
           var locName = node.Attributes["displayname"].Value;
 
-          outputList.Add(new IDContainer() { Index = locID, UniqueName = locName });
+          writeItem(outputStream, new IDContainer()
+          {
+            Index = locID,
+            UniqueName = locName
+          });
         }
       }
-
-      ms.Close();
-
-      return outputList.ToList();
     }
 
     protected override string GetBinFilePath()
