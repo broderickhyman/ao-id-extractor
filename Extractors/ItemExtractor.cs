@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Xml;
 
@@ -26,7 +27,9 @@ namespace ao_id_extractor.Extractors
 
       var localizationData = default(LocalizationData);
       if (withLocal)
+      {
         localizationData = ExtractLocalization();
+      }
 
       var index = 0;
       foreach (XmlNode node in rootNode.ChildNodes)
@@ -49,8 +52,7 @@ namespace ao_id_extractor.Extractors
             LocalizationDescriptionVariable = description != null ? description.Value : LocalizationItemPrefix + uniqueName + LocalizationItemDescPostfix,
             LocalizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName
           };
-          if (withLocal)
-            SetLocalization(localizationData, container);
+          SetLocalization(localizationData, container);
           writeItem(outputStream, container);
           index++;
 
@@ -75,8 +77,7 @@ namespace ao_id_extractor.Extractors
                 LocalizationDescriptionVariable = description != null ? description.Value : LocalizationItemPrefix + uniqueName + LocalizationItemDescPostfix,
                 LocalizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName
               };
-              if (withLocal)
-                SetLocalization(localizationData, container);
+              SetLocalization(localizationData, container);
               writeItem(outputStream, container);
 
               index++;
@@ -94,8 +95,7 @@ namespace ao_id_extractor.Extractors
           LocalizationDescriptionVariable = LocalizationItemPrefix + j.UniqueName + "_EMPTY" + LocalizationItemDescPostfix,
           LocalizationNameVariable = LocalizationItemPrefix + j.UniqueName + "_EMPTY"
         };
-        if (withLocal)
-          SetLocalization(localizationData, container);
+        SetLocalization(localizationData, container);
         writeItem(outputStream, container);
         index++;
         container = new ItemContainer()
@@ -105,8 +105,7 @@ namespace ao_id_extractor.Extractors
           LocalizationDescriptionVariable = LocalizationItemPrefix + j.UniqueName + "_FULL" + LocalizationItemDescPostfix,
           LocalizationNameVariable = LocalizationItemPrefix + j.UniqueName + "_FULL"
         };
-        if (withLocal)
-          SetLocalization(localizationData, container);
+        SetLocalization(localizationData, container);
         writeItem(outputStream, container);
         index++;
       }
@@ -114,6 +113,7 @@ namespace ao_id_extractor.Extractors
 
     private void SetLocalization(LocalizationData data, ItemContainer item)
     {
+      if (data == default(LocalizationData)) return;
       if (data.LocalizedDescriptions.TryGetValue(item.LocalizationDescriptionVariable, out var descriptions))
       {
         item.LocalizedDescriptions = descriptions;
@@ -143,34 +143,23 @@ namespace ao_id_extractor.Extractors
           if (node.NodeType == XmlNodeType.Element)
           {
             var tuid = node.Attributes["tuid"];
-            if (tuid != null)
+            if (tuid?.Value.StartsWith(LocalizationItemPrefix) == true)
             {
-              if (tuid.Value.StartsWith(LocalizationItemPrefix))
+              // is the item description
+              if (tuid.Value.EndsWith(LocalizationItemDescPostfix))
               {
-                // is the item description
-                if (tuid.Value.EndsWith(LocalizationItemDescPostfix))
-                {
-                  localizationData.LocalizedDescriptions[tuid.Value] = new Dictionary<string, string>();
-                  foreach (XmlNode childNode in node.ChildNodes)
-                  {
-                    var language = childNode.Attributes["xml:lang"].Value;
-                    var description = childNode.LastChild.InnerText;
-
-                    localizationData.LocalizedDescriptions[tuid.Value].Add(language, description);
-                  }
-                }
-                // is item name
-                else
-                {
-                  localizationData.LocalizedNames[tuid.Value] = new Dictionary<string, string>();
-                  foreach (XmlNode childNode in node.ChildNodes)
-                  {
-                    var language = childNode.Attributes["xml:lang"].Value;
-                    var description = childNode.LastChild.InnerText;
-
-                    localizationData.LocalizedNames[tuid.Value].Add(language, description);
-                  }
-                }
+                localizationData.LocalizedDescriptions[tuid.Value] = node.ChildNodes
+                  .Cast<XmlNode>()
+                  .Select(x => new KeyValuePair<string, string>(x.Attributes["xml:lang"].Value, x.LastChild.InnerText))
+                  .ToArray();
+              }
+              // is item name
+              else
+              {
+                localizationData.LocalizedNames[tuid.Value] = node.ChildNodes
+                  .Cast<XmlNode>()
+                  .Select(x => new KeyValuePair<string, string>(x.Attributes["xml:lang"].Value, x.LastChild.InnerText))
+                  .ToArray();
               }
             }
           }
@@ -185,11 +174,11 @@ namespace ao_id_extractor.Extractors
     {
       return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\items.bin");
     }
-  }
 
-  public class LocalizationData
-  {
-    public Dictionary<string, Dictionary<string, string>> LocalizedNames = new Dictionary<string, Dictionary<string, string>>();
-    public Dictionary<string, Dictionary<string, string>> LocalizedDescriptions = new Dictionary<string, Dictionary<string, string>>();
+    public class LocalizationData
+    {
+      public Dictionary<string, KeyValuePair<string, string>[]> LocalizedNames = new Dictionary<string, KeyValuePair<string, string>[]>();
+      public Dictionary<string, KeyValuePair<string, string>[]> LocalizedDescriptions = new Dictionary<string, KeyValuePair<string, string>[]>();
+    }
   }
 }

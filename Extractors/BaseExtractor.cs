@@ -19,8 +19,8 @@ namespace ao_id_extractor.Extractors
   {
     public string LocalizationNameVariable { get; set; }
     public string LocalizationDescriptionVariable { get; set; }
-    public Dictionary<string, string> LocalizedNames { get; set; }
-    public Dictionary<string, string> LocalizedDescriptions { get; set; }
+    public KeyValuePair<string, string>[] LocalizedNames { get; set; }
+    public KeyValuePair<string, string>[] LocalizedDescriptions { get; set; }
   }
 
   public enum ExportType
