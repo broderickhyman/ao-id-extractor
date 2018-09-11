@@ -42,18 +42,18 @@ namespace ao_id_extractor
     }
   }
 
-  public class Program
+  public static class Program
   {
     [DllImport("kernel32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool AllocConsole();
+    private static extern bool AllocConsole();
 
     public static string OutputFolderPath { get; set; }
     public static ExportType ExportType { get; set; }
     public static ExportMode ExportMode { get; set; }
     public static string MainGameFolder { get; set; }
 
-    static void PrintCmdHelp()
+    private static void PrintCmdHelp()
     {
       Console.WriteLine("How to use:\nao-id-extractor.exe modeID outFormat [outFolder]\n" +
           "modeID\t\t#Extraction 0=Item Extraction, 1=Location Extraction, 2=Resource Extraction, 3=Dump All, 4=Extract Items & Locations & Resource\n" +
@@ -62,7 +62,7 @@ namespace ao_id_extractor
           "[gameFolder]\t#OPTIONAL: Location of the main AlbionOnline folder");
     }
 
-    static void ParseCommandline(string[] args)
+    private static void ParseCommandline(string[] args)
     {
       if (args.Length >= 2)
       {
@@ -121,12 +121,12 @@ namespace ao_id_extractor
     }
 
     [STAThread]
-    static void Main(string[] args)
+    private static void Main(string[] args)
     {
       OutputFolderPath = "";
       MainGameFolder = "";
 
-      string parentName = ProcessExtensions.Parent(Process.GetCurrentProcess()).ProcessName;
+      var parentName = Process.GetCurrentProcess().Parent().ProcessName;
 
       DeleteOldFilesAndDirs();
 
@@ -134,9 +134,9 @@ namespace ao_id_extractor
 
       if (parentName != "cmd")
       {
-        MainWindow mainWindow = new MainWindow();
+        var mainWindow = new MainWindow();
         Application.EnableVisualStyles();
-        Console.SetOut(new MultiTextWriter(new ControlWriter(mainWindow.tbConsole), Console.Out));
+        Console.SetOut(new MultiTextWriter(new ControlWriter(mainWindow.ConsoleBox), Console.Out));
         Application.Run(mainWindow);
         return;
       }
@@ -155,7 +155,7 @@ namespace ao_id_extractor
     {
       Console.Out.WriteLine("#---- Starting Extraction Operation ----#");
 
-      string exportTypeString = "";
+      var exportTypeString = "";
       if (ExportType == ExportType.TextList)
         exportTypeString = "Text List";
       else if (ExportType == ExportType.Json)
@@ -202,19 +202,19 @@ namespace ao_id_extractor
       Console.Out.WriteLine("#---- Finished Extraction Operation ----#");
     }
 
-    static void DeleteOldFilesAndDirs()
+    private static void DeleteOldFilesAndDirs()
     {
-      DirectoryInfo baseDir = new DirectoryInfo(Path.GetDirectoryName(Application.ExecutablePath));
+      var baseDir = new DirectoryInfo(Path.GetDirectoryName(Application.ExecutablePath));
       if (baseDir.Exists)
       {
         //delete sub directories:
         foreach (var dir in baseDir.EnumerateDirectories())
         {
-          System.IO.Directory.Delete(dir.FullName, true);
+          Directory.Delete(dir.FullName, true);
         }
 
-        string name = Process.GetCurrentProcess().MainModule.FileName;
-        string app = System.IO.Path.GetFileName(name);
+        var name = Process.GetCurrentProcess().MainModule.FileName;
+        var app = Path.GetFileName(name);
 
         //delete files:
         foreach (var file in baseDir.GetFiles())

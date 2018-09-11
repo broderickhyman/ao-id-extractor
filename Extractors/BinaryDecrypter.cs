@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 
 namespace ao_id_extractor.Extractors
 {
-  public class BinaryDecrypter
+  public static class BinaryDecrypter
   {
     private static readonly byte[] Key = new byte[] { 48, 239, 114, 71, 66, 242, 4, 50 };
     private static readonly byte[] Iv = new byte[] { 14, 166, 220, 137, 219, 237, 220, 79 };

@@ -15,62 +15,65 @@ namespace ao_id_extractor
 
     private void MainWindow_Load(object sender, EventArgs e)
     {
-      tbAOFolder.Text = Program.MainGameFolder;
-      tbOutFolder.Text = Program.OutputFolderPath;
-      cbExtractionMode.SelectedIndex = (int)Program.ExportMode;
-      cbExportType.SelectedIndex = (int)Program.ExportType;
+      AOFolder.Text = Program.MainGameFolder;
+      OutFolder.Text = Program.OutputFolderPath;
+      ExtractionMode.SelectedIndex = (int)Program.ExportMode;
+      ExportType.SelectedIndex = (int)Program.ExportType;
     }
 
-    private void btnSelectFromRegistry_Click(object sender, EventArgs e)
+    private void SelectFromRegistry_Click(object sender, EventArgs e)
     {
-      string obj = (string)Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SandboxAlbionOnline", false).GetValue("DisplayIcon");
+      var obj = (string)Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\SandboxAlbionOnline", false).GetValue("DisplayIcon");
       Program.MainGameFolder = Path.Combine(Path.GetDirectoryName(obj.Trim('\"')), "..");
 
-      tbAOFolder.Text = Program.MainGameFolder;
+      AOFolder.Text = Program.MainGameFolder;
     }
 
-    private void btnSelectAOFolder_Click(object sender, EventArgs e)
+    private void SelectAOFolder_Click(object sender, EventArgs e)
     {
-      FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-      folderBrowserDialog.ShowNewFolderButton = false;
-      folderBrowserDialog.SelectedPath = Path.GetDirectoryName(Application.ExecutablePath);
-      folderBrowserDialog.Description = "Please select the Albion Online Gamefolder. Example: C:\\AlbionOnline";
-      DialogResult res = folderBrowserDialog.ShowDialog();
+      var folderBrowserDialog = new FolderBrowserDialog
+      {
+        ShowNewFolderButton = false,
+        SelectedPath = Path.GetDirectoryName(Application.ExecutablePath),
+        Description = "Please select the Albion Online Gamefolder. Example: C:\\AlbionOnline"
+      };
+      var res = folderBrowserDialog.ShowDialog();
 
       if (res == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
       {
         Program.MainGameFolder = folderBrowserDialog.SelectedPath;
-        tbAOFolder.Text = Program.MainGameFolder;
+        AOFolder.Text = Program.MainGameFolder;
       }
     }
 
-    private void btnSelectOutFolder_Click(object sender, EventArgs e)
+    private void SelectOutFolder_Click(object sender, EventArgs e)
     {
-      FolderBrowserDialog folderBrowserDialog = new FolderBrowserDialog();
-      folderBrowserDialog.ShowNewFolderButton = true;
-      folderBrowserDialog.SelectedPath = Path.GetDirectoryName(Application.ExecutablePath);
-      folderBrowserDialog.Description = "Please select an output folder for the Extracted Files";
-      DialogResult res = folderBrowserDialog.ShowDialog();
+      var folderBrowserDialog = new FolderBrowserDialog
+      {
+        ShowNewFolderButton = true,
+        SelectedPath = Path.GetDirectoryName(Application.ExecutablePath),
+        Description = "Please select an output folder for the Extracted Files"
+      };
+      var res = folderBrowserDialog.ShowDialog();
 
       if (res == DialogResult.OK && !string.IsNullOrWhiteSpace(folderBrowserDialog.SelectedPath))
       {
         Program.OutputFolderPath = folderBrowserDialog.SelectedPath;
-        tbOutFolder.Text = Program.OutputFolderPath;
+        OutFolder.Text = Program.OutputFolderPath;
       }
     }
 
-    private void btnExtract_Click(object sender, EventArgs e)
+    private void Extract_Click(object sender, EventArgs e)
     {
-
       Invoke(new Action(Program.RunExtractions));
     }
 
-    private void cbExtractionMode_SelectedIndexChanged(object sender, EventArgs e)
+    private void ExtractionMode_SelectedIndexChanged(object sender, EventArgs e)
     {
       Program.ExportMode = (ExportMode)((ComboBox)sender).SelectedIndex;
     }
 
-    private void cbExportType_SelectedIndexChanged(object sender, EventArgs e)
+    private void ExportType_SelectedIndexChanged(object sender, EventArgs e)
     {
       Program.ExportType = (ExportType)((ComboBox)sender).SelectedIndex;
     }
