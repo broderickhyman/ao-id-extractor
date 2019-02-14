@@ -8,34 +8,33 @@ using System.Xml;
 
 namespace ao_id_extractor.Extractors
 {
-  public class LocationExtractor : BaseExtractor
+  public class SpellExtractor : BaseExtractor
   {
     protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true)
     {
       var xmlDoc = new XmlDocument();
       xmlDoc.Load(inputXmlFile);
 
-      var rootNode = xmlDoc.LastChild.FirstChild;
+      var rootNode = xmlDoc.LastChild;
 
+      var index = 0;
       foreach (XmlNode node in rootNode.ChildNodes)
       {
         if (node.NodeType == XmlNodeType.Element)
         {
-          var locID = node.Attributes["id"].Value;
-          var locName = node.Attributes["displayname"].Value;
-
           writeItem(outputStream, new IDContainer()
           {
-            Index = locID,
-            UniqueName = locName
+            Index = index.ToString(),
+            UniqueName = node.Attributes["uniquename"].Value
           });
+          index++;
         }
       }
     }
 
     protected override string GetBinFilePath()
     {
-      return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\cluster\world.bin");
+      return Path.Combine(Program.MainGameFolder, @".\game\Albion-Online_Data\StreamingAssets\GameData\spells.bin");
     }
   }
 }

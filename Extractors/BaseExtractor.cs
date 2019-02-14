@@ -36,7 +36,8 @@ namespace ao_id_extractor.Extractors
     Location_Extraction,
     Resource_Extraction,
     Dump_All_XML,
-    Extract_Items_Locations_Resource
+    Extract_Items_Locations_Resource,
+    Spells_Extraction
   }
 
   public abstract class BaseExtractor

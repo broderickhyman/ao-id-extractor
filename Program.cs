@@ -180,6 +180,11 @@ namespace ao_id_extractor
           new ResourceExtractor().Extract();
           Console.Out.WriteLine("--- Extraction Complete! ---");
           break;
+        case ExportMode.Spells_Extraction:
+          Console.Out.WriteLine("--- Starting Extraction of Spells as " + exportTypeString + " ---");
+          new SpellExtractor().Extract();
+          Console.Out.WriteLine("--- Extraction Complete! ---");
+          break;
         case ExportMode.Dump_All_XML:
           Console.Out.WriteLine("--- Starting Extraction of All Files as XML ---");
           new BinaryDumper().Extract();
