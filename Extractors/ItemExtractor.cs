@@ -17,7 +17,7 @@ namespace ao_id_extractor.Extractors
     {
     }
 
-    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true)
+    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, bool withLocal = true)
     {
       var journals = new List<IDContainer>();
       var xmlDoc = new XmlDocument();
@@ -32,6 +32,7 @@ namespace ao_id_extractor.Extractors
       }
 
       var index = 0;
+      var first = true;
       foreach (XmlNode node in rootNode.ChildNodes)
       {
         if (node.NodeType == XmlNodeType.Element)
@@ -53,7 +54,11 @@ namespace ao_id_extractor.Extractors
             LocalizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName
           };
           SetLocalization(localizationData, container);
-          writeItem(outputStream, container);
+          writeItem(outputStream, container, first);
+          if (first)
+          {
+            first = false;
+          }
           index++;
 
           if (node.Name == "journalitem")
@@ -78,7 +83,7 @@ namespace ao_id_extractor.Extractors
                 LocalizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName
               };
               SetLocalization(localizationData, container);
-              writeItem(outputStream, container);
+              writeItem(outputStream, container, false);
 
               index++;
             }
@@ -96,7 +101,7 @@ namespace ao_id_extractor.Extractors
           LocalizationNameVariable = LocalizationItemPrefix + j.UniqueName + "_EMPTY"
         };
         SetLocalization(localizationData, container);
-        writeItem(outputStream, container);
+        writeItem(outputStream, container, false);
         index++;
         container = new ItemContainer()
         {
@@ -106,7 +111,7 @@ namespace ao_id_extractor.Extractors
           LocalizationNameVariable = LocalizationItemPrefix + j.UniqueName + "_FULL"
         };
         SetLocalization(localizationData, container);
-        writeItem(outputStream, container);
+        writeItem(outputStream, container, false);
         index++;
       }
     }
@@ -165,7 +170,6 @@ namespace ao_id_extractor.Extractors
           }
         }
       }
-      File.Delete(xmlFileLocation);
 
       return localizationData;
     }

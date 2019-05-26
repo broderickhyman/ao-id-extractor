@@ -15,13 +15,13 @@ namespace ao_id_extractor.Extractors
 
     }
 
-    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true)
+    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, bool withLocal = true)
     {
       var xmlDoc = new XmlDocument();
       xmlDoc.Load(inputXmlFile);
 
       var rootNode = xmlDoc.LastChild.FirstChild;
-
+      var first = true;
       foreach (XmlNode node in rootNode.ChildNodes)
       {
         if (node.NodeType == XmlNodeType.Element)
@@ -33,7 +33,11 @@ namespace ao_id_extractor.Extractors
           {
             Index = locID,
             UniqueName = locName
-          });
+          }, first);
+          if (first)
+          {
+            first = false;
+          }
         }
       }
     }

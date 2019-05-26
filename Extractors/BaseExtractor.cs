@@ -53,7 +53,7 @@ namespace ao_id_extractor.Extractors
     }
 
     protected abstract string GetBinFilePath();
-    protected abstract void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer> writeItem, bool withLocal = true);
+    protected abstract void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, bool withLocal = true);
 
     protected XmlElement FindElement(XmlNode node, string elementName)
     {
@@ -102,7 +102,6 @@ namespace ao_id_extractor.Extractors
           streamType.Stream.Close();
         }
       }
-      File.Delete(xmlPath);
     }
 
     //public List<IDContainer> PureExtract(bool withLocal = true)
@@ -135,7 +134,7 @@ namespace ao_id_extractor.Extractors
 
     private Stream GetExportStream(ExportType exportType)
     {
-      var filePathWithoutExtension = Path.Combine(Program.OutputFolderPath, Path.GetFileNameWithoutExtension(GetBinFilePath()));
+      var filePathWithoutExtension = Path.Combine(Program.OutputFolderPath, "formatted", Path.GetFileNameWithoutExtension(GetBinFilePath()));
       if (!Directory.Exists(Path.GetDirectoryName(filePathWithoutExtension)))
       {
         var di = Directory.CreateDirectory(Path.GetDirectoryName(filePathWithoutExtension));
@@ -158,11 +157,11 @@ namespace ao_id_extractor.Extractors
     {
       if (exportType == ExportType.Json)
       {
-        WriteString(stream, "]");
+        WriteString(stream, Environment.NewLine + "]");
       }
     }
 
-    private void WriteItem(MultiStream multiStream, IDContainer item)
+    private void WriteItem(MultiStream multiStream, IDContainer item, bool first = false)
     {
       foreach (var streamType in multiStream.StreamTypes)
       {
@@ -173,7 +172,11 @@ namespace ao_id_extractor.Extractors
         }
         else if (streamType.ExportType == ExportType.Json)
         {
-          output.Append(JSONHelper.FormatJson(item.ToJSON())).AppendLine(",");
+          if (!first)
+          {
+            output.AppendLine(",");
+          }
+          output.Append(JSONHelper.FormatJson(item.ToJSON()));
         }
         WriteString(streamType, output.ToString());
         output.Clear();

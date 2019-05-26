@@ -128,8 +128,6 @@ namespace ao_id_extractor
 
       var parentName = Process.GetCurrentProcess().Parent().ProcessName;
 
-      DeleteOldFilesAndDirs();
-
       ParseCommandline(args);
 
       if (parentName != "cmd")
@@ -200,29 +198,6 @@ namespace ao_id_extractor
           break;
       }
       Console.Out.WriteLine("#---- Finished Extraction Operation ----#");
-    }
-
-    private static void DeleteOldFilesAndDirs()
-    {
-      var baseDir = new DirectoryInfo(Path.GetDirectoryName(Application.ExecutablePath));
-      if (baseDir.Exists)
-      {
-        //delete sub directories:
-        foreach (var dir in baseDir.EnumerateDirectories())
-        {
-          Directory.Delete(dir.FullName, true);
-        }
-
-        var name = Process.GetCurrentProcess().MainModule.FileName;
-        var app = Path.GetFileName(name);
-
-        //delete files:
-        foreach (var file in baseDir.GetFiles())
-        {
-          if (file.Extension != ".exe" && file.Extension != ".md" && file.Extension != ".pdb" && file.Extension != ".bat")
-            file.Delete();
-        }
-      }
     }
   }
 }
