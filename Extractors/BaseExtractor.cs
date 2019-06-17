@@ -3,6 +3,7 @@ using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -19,8 +20,8 @@ namespace ao_id_extractor.Extractors
   {
     public string LocalizationNameVariable { get; set; }
     public string LocalizationDescriptionVariable { get; set; }
-    public KeyValuePair<string, string>[] LocalizedNames { get; set; }
-    public KeyValuePair<string, string>[] LocalizedDescriptions { get; set; }
+    public Dictionary<string, string> LocalizedNames { get; set; }
+    public Dictionary<string, string> LocalizedDescriptions { get; set; }
   }
 
   public enum ExportType
@@ -124,7 +125,7 @@ namespace ao_id_extractor.Extractors
       var finalOutPath = Path.Combine(Program.OutputFolderPath, binFileWOE + ".xml");
       Directory.CreateDirectory(Path.GetDirectoryName(finalOutPath));
 
-      using (var outputStream = File.OpenWrite(finalOutPath))
+      using (var outputStream = File.Create(finalOutPath))
       {
         BinaryDecrypter.DecryptBinaryFile(binFile, outputStream);
       }
@@ -142,15 +143,15 @@ namespace ao_id_extractor.Extractors
 
       if (exportType == ExportType.TextList)
       {
-        return File.OpenWrite(filePathWithoutExtension + ".txt");
+        return File.Create(filePathWithoutExtension + ".txt");
       }
       else if (exportType == ExportType.Json)
       {
-        var stream = File.OpenWrite(filePathWithoutExtension + ".json");
+        var stream = File.Create(filePathWithoutExtension + ".json");
         WriteString(stream, "[" + Environment.NewLine);
         return stream;
       }
-      return File.OpenWrite(filePathWithoutExtension + ".txt");
+      return File.Create(filePathWithoutExtension + ".txt");
     }
 
     private void CloseExportStream(Stream stream, ExportType exportType)
@@ -161,14 +162,24 @@ namespace ao_id_extractor.Extractors
       }
     }
 
-    private void WriteItem(MultiStream multiStream, IDContainer item, bool first = false)
+    private void WriteItem(MultiStream multiStream, IDContainer idContainer, bool first = false)
     {
       foreach (var streamType in multiStream.StreamTypes)
       {
         var output = new StringBuilder();
         if (streamType.ExportType == ExportType.TextList)
         {
-          output.AppendFormat("{0}:{1}", item.Index, item.UniqueName).AppendLine();
+
+          output.AppendFormat("{0,4}: {1,-65}", idContainer.Index, idContainer.UniqueName);
+          if (idContainer is ItemContainer itemContainer && itemContainer.LocalizedNames != null)
+          {
+            var englishNames = itemContainer.LocalizedNames.Where(x => x.Key == "EN-US");
+            if (englishNames.Any())
+            {
+              output.AppendFormat(": {0}", englishNames.First().Value);
+            }
+          }
+          output.AppendLine();
         }
         else if (streamType.ExportType == ExportType.Json)
         {
@@ -176,7 +187,7 @@ namespace ao_id_extractor.Extractors
           {
             output.AppendLine(",");
           }
-          output.Append(JSONHelper.FormatJson(item.ToJSON()));
+          output.Append(idContainer.ToJSON());
         }
         WriteString(streamType, output.ToString());
         output.Clear();

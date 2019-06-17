@@ -150,21 +150,18 @@ namespace ao_id_extractor.Extractors
             var tuid = node.Attributes["tuid"];
             if (tuid?.Value.StartsWith(LocalizationItemPrefix) == true)
             {
+              var languages = node.ChildNodes
+                  .Cast<XmlNode>()
+                  .ToDictionary(x => x.Attributes["xml:lang"].Value, y => y.LastChild.InnerText);
               // is the item description
               if (tuid.Value.EndsWith(LocalizationItemDescPostfix))
               {
-                localizationData.LocalizedDescriptions[tuid.Value] = node.ChildNodes
-                  .Cast<XmlNode>()
-                  .Select(x => new KeyValuePair<string, string>(x.Attributes["xml:lang"].Value, x.LastChild.InnerText))
-                  .ToArray();
+                localizationData.LocalizedDescriptions[tuid.Value] = languages;
               }
               // is item name
               else
               {
-                localizationData.LocalizedNames[tuid.Value] = node.ChildNodes
-                  .Cast<XmlNode>()
-                  .Select(x => new KeyValuePair<string, string>(x.Attributes["xml:lang"].Value, x.LastChild.InnerText))
-                  .ToArray();
+                localizationData.LocalizedNames[tuid.Value] = languages;
               }
             }
           }
@@ -181,8 +178,8 @@ namespace ao_id_extractor.Extractors
 
     public class LocalizationData
     {
-      public Dictionary<string, KeyValuePair<string, string>[]> LocalizedNames = new Dictionary<string, KeyValuePair<string, string>[]>();
-      public Dictionary<string, KeyValuePair<string, string>[]> LocalizedDescriptions = new Dictionary<string, KeyValuePair<string, string>[]>();
+      public Dictionary<string, Dictionary<string, string>> LocalizedNames = new Dictionary<string, Dictionary<string, string>>();
+      public Dictionary<string, Dictionary<string, string>> LocalizedDescriptions = new Dictionary<string, Dictionary<string, string>>();
     }
   }
 }

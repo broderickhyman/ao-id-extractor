@@ -1,6 +1,8 @@
 ﻿using Microsoft.Win32;
+using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Xml;
 
 namespace ao_id_extractor.Extractors
 {
@@ -40,11 +42,25 @@ namespace ao_id_extractor.Extractors
 
       if (outSubdirs != "")
         Directory.CreateDirectory(outSubdirs);
-      var finalOutPath = Path.Combine(outSubdirs, binFileWOE + ".xml");
+      var finalOutPath = Path.Combine(outSubdirs, binFileWOE);
+      var finalXmlPath = finalOutPath + ".xml";
+      var finalJsonPath = finalOutPath + ".json";
 
-      using (var outputFile = File.OpenWrite(finalOutPath))
+      using (var outputXmlFile = File.Create(finalXmlPath))
       {
-        BinaryDecrypter.DecryptBinaryFile(binFile, outputFile);
+        BinaryDecrypter.DecryptBinaryFile(binFile, outputXmlFile);
+      }
+
+      if (!subdir.StartsWith("cluster") && !subdir.StartsWith("templates"))
+      {
+        var xmlDocument = new XmlDocument();
+        var xmlReaderSettings = new XmlReaderSettings
+        {
+          IgnoreComments = true
+        };
+        var xmlReader = XmlReader.Create(finalXmlPath, xmlReaderSettings);
+        xmlDocument.Load(xmlReader);
+        File.WriteAllText(finalJsonPath, JsonConvert.SerializeXmlNode(xmlDocument, Newtonsoft.Json.Formatting.Indented, false));
       }
 
       return finalOutPath;
