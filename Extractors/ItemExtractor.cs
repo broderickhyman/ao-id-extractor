@@ -35,7 +35,7 @@ namespace ao_id_extractor.Extractors
       var first = true;
       foreach (XmlNode node in rootNode.ChildNodes)
       {
-        if (node.NodeType == XmlNodeType.Element)
+        if (node.NodeType == XmlNodeType.Element && !string.IsNullOrEmpty(node.Attributes["uniquename"]?.Value))
         {
           var uniqueName = node.Attributes["uniquename"].Value;
           var enchantmentLevel = node.Attributes["enchantmentlevel"];
