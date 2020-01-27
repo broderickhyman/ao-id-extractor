@@ -46,12 +46,17 @@ namespace ao_id_extractor.Extractors
           {
             enchantment = "@" + enchantmentLevel.Value;
           }
+          var localizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName;
+          if (uniqueName.Contains("ARTEFACT"))
+          {
+            localizationNameVariable = LocalizationItemPrefix + uniqueName;
+          }
           var container = new ItemContainer()
           {
             Index = index.ToString(),
             UniqueName = uniqueName + enchantment,
             LocalizationDescriptionVariable = description != null ? description.Value : LocalizationItemPrefix + uniqueName + LocalizationItemDescPostfix,
-            LocalizationNameVariable = name != null ? name.Value : LocalizationItemPrefix + uniqueName
+            LocalizationNameVariable = localizationNameVariable
           };
           SetLocalization(localizationData, container);
           writeItem(outputStream, container, first);
