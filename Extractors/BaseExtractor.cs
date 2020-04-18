@@ -122,7 +122,7 @@ namespace ao_id_extractor.Extractors
 
       Console.Out.WriteLine("Extracting " + binFileWOE + ".bin...");
 
-      var finalOutPath = Path.Combine(Program.OutputFolderPath, binFileWOE + ".xml");
+      var finalOutPath = Path.ChangeExtension(Path.Combine(Program.OutputFolderPath, binFile.Substring(binFile.LastIndexOf("GameData\\") + 9)), ".xml");
       Directory.CreateDirectory(Path.GetDirectoryName(finalOutPath));
 
       using (var outputStream = File.Create(finalOutPath))
