@@ -153,19 +153,27 @@ namespace ao_id_extractor
     {
       Console.Out.WriteLine("#---- Starting Extraction Operation ----#");
 
-      var exportTypeString = "";
+      string exportTypeString;
       if (ExportType == ExportType.TextList)
+      {
         exportTypeString = "Text List";
+      }
       else if (ExportType == ExportType.Json)
+      {
         exportTypeString = "JSON";
+      }
       else
+      {
         exportTypeString = "Text List and JSON";
+      }
+
+      var localizationData = new LocalizationData();
 
       switch (ExportMode)
       {
         case ExportMode.Item_Extraction:
           Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
-          new ItemExtractor().Extract();
+          new ItemExtractor().Extract(localizationData);
           Console.Out.WriteLine("--- Extraction Complete! ---");
           break;
         case ExportMode.Location_Extraction:
@@ -173,27 +181,18 @@ namespace ao_id_extractor
           new LocationExtractor().Extract();
           Console.Out.WriteLine("--- Extraction Complete! ---");
           break;
-        case ExportMode.Resource_Extraction:
-          Console.Out.WriteLine("--- Starting Extraction of Resources as " + exportTypeString + " ---");
-          new ResourceExtractor().Extract();
-          Console.Out.WriteLine("--- Extraction Complete! ---");
-          break;
         case ExportMode.Dump_All_XML:
           Console.Out.WriteLine("--- Starting Extraction of All Files as XML ---");
           new BinaryDumper().Extract();
           Console.Out.WriteLine("--- Extraction Complete! ---");
           break;
-        case ExportMode.Extract_Items_Locations_Resource:
+        case ExportMode.Extract_Items_Locations:
           Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
-          new ItemExtractor().Extract();
+          new ItemExtractor().Extract(localizationData);
           Console.Out.WriteLine("--- Extraction Complete! ---");
 
           Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
           new LocationExtractor().Extract();
-          Console.Out.WriteLine("--- Extraction Complete! ---");
-
-          Console.Out.WriteLine("--- Starting Extraction of Resources as " + exportTypeString + " ---");
-          new ResourceExtractor().Extract();
           Console.Out.WriteLine("--- Extraction Complete! ---");
           break;
       }

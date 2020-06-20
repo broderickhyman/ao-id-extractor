@@ -35,9 +35,8 @@ namespace ao_id_extractor.Extractors
   {
     Item_Extraction,
     Location_Extraction,
-    Resource_Extraction,
     Dump_All_XML,
-    Extract_Items_Locations_Resource
+    Extract_Items_Locations
   }
 
   public abstract class BaseExtractor
@@ -54,7 +53,7 @@ namespace ao_id_extractor.Extractors
     }
 
     protected abstract string GetBinFilePath();
-    protected abstract void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, bool withLocal = true);
+    protected abstract void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, LocalizationData localizationData = default);
 
     protected XmlElement FindElement(XmlNode node, string elementName)
     {
@@ -69,7 +68,7 @@ namespace ao_id_extractor.Extractors
       return null;
     }
 
-    public void Extract(bool withLocal = true)
+    public void Extract(LocalizationData localizationData = default)
     {
       var xmlPath = DecryptBinFile(GetBinFilePath());
       using (var inputFile = File.OpenRead(xmlPath))
@@ -95,7 +94,7 @@ namespace ao_id_extractor.Extractors
         }
         var multiStream = new MultiStream(streamTypes.ToArray());
 
-        ExtractFromXML(inputFile, multiStream, WriteItem, withLocal);
+        ExtractFromXML(inputFile, multiStream, WriteItem, localizationData);
 
         foreach (var streamType in streamTypes)
         {

@@ -206,9 +206,8 @@
       this.ExtractionMode.Items.AddRange(new object[] {
             "Item Extraction",
             "Location Extraction",
-            "Resource Extraction",
             "Dump All XML",
-            "Extract Items & Locations & Resource"});
+            "Extract Items & Locations"});
       this.ExtractionMode.Location = new System.Drawing.Point(148, 29);
       this.ExtractionMode.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
       this.ExtractionMode.Name = "ExtractionMode";

@@ -15,7 +15,7 @@ namespace ao_id_extractor.Extractors
 
     }
 
-    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, bool withLocal = true)
+    protected override void ExtractFromXML(Stream inputXmlFile, MultiStream outputStream, Action<MultiStream, IDContainer, bool> writeItem, LocalizationData localizationData = default)
     {
       var xmlDoc = new XmlDocument();
       xmlDoc.Load(inputXmlFile);

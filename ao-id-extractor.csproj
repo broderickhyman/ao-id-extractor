@@ -67,12 +67,12 @@
   <ItemGroup>
     <Compile Include="Extractors\BinaryDecrypter.cs" />
     <Compile Include="Extractors\BinaryDumper.cs" />
-    <Compile Include="Extractors\ResourceExtractor.cs" />
     <Compile Include="Helpers\ControlWriter.cs" />
     <Compile Include="Helpers\JSONHelper.cs" />
     <Compile Include="Extractors\LocationExtractor.cs" />
     <Compile Include="Extractors\ItemExtractor.cs" />
     <Compile Include="Extractors\BaseExtractor.cs" />
+    <Compile Include="Helpers\LocalizationData.cs" />
     <Compile Include="Helpers\MultiStream.cs" />
     <Compile Include="Helpers\MultiTextWriter.cs" />
     <Compile Include="MainWindow.cs">
