@@ -18,7 +18,7 @@ namespace ao_id_extractor.Extractors
 
       var rootNode = xmlDoc.LastChild;
 
-      var index = 0;
+      var index = 1;
       var first = true;
       foreach (XmlNode node in rootNode.ChildNodes)
       {

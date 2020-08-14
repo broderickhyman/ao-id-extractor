@@ -56,7 +56,7 @@ namespace ao_id_extractor
     private static void PrintCmdHelp()
     {
       Console.WriteLine("How to use:\nao-id-extractor.exe modeID outFormat [outFolder]\n" +
-          "modeID\t\t#Extraction 0=Item Extraction, 1=Location Extraction, 2=Resource Extraction, 3=Dump All, 4=Extract Items & Locations & Resource\n" +
+          "modeID\t\t#Extraction 0=Item Extraction, 1=Location Extraction, 2=Dump All, 3=Extract Items & Locations, 4=Everything\n" +
           "outFormat\t#l=Text List, j=JSON b=Both\n" +
           "[outFolder]\t#OPTIONAL: Output folder path. Default: current directory\n" +
           "[gameFolder]\t#OPTIONAL: Location of the main AlbionOnline folder");
@@ -67,7 +67,7 @@ namespace ao_id_extractor
       if (args.Length >= 2)
       {
         var exportMode = int.Parse(args[0]);
-        if (exportMode >= 0 && exportMode <= 3)
+        if (exportMode >= 0 && exportMode <= 4)
         {
           ExportMode = (ExportMode)exportMode;
         }
@@ -172,31 +172,46 @@ namespace ao_id_extractor
       switch (ExportMode)
       {
         case ExportMode.Item_Extraction:
-          Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
-          new ItemExtractor().Extract(localizationData);
-          Console.Out.WriteLine("--- Extraction Complete! ---");
+          ExtractItems(localizationData, exportTypeString);
           break;
         case ExportMode.Location_Extraction:
-          Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
-          new LocationExtractor().Extract();
-          Console.Out.WriteLine("--- Extraction Complete! ---");
+          ExtractLocations(exportTypeString);
           break;
         case ExportMode.Dump_All_XML:
-          Console.Out.WriteLine("--- Starting Extraction of All Files as XML ---");
-          new BinaryDumper().Extract();
-          Console.Out.WriteLine("--- Extraction Complete! ---");
+          DumpAllXml();
           break;
         case ExportMode.Extract_Items_Locations:
-          Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
-          new ItemExtractor().Extract(localizationData);
-          Console.Out.WriteLine("--- Extraction Complete! ---");
-
-          Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
-          new LocationExtractor().Extract();
-          Console.Out.WriteLine("--- Extraction Complete! ---");
+          ExtractItems(localizationData, exportTypeString);
+          ExtractLocations(exportTypeString);
+          break;
+        case ExportMode.Everything:
+          ExtractItems(localizationData, exportTypeString);
+          ExtractLocations(exportTypeString);
+          DumpAllXml();
           break;
       }
       Console.Out.WriteLine("#---- Finished Extraction Operation ----#");
+    }
+
+    public static void ExtractItems(LocalizationData localizationData, string exportTypeString)
+    {
+      Console.Out.WriteLine("--- Starting Extraction of Items as " + exportTypeString + " ---");
+      new ItemExtractor().Extract(localizationData);
+      Console.Out.WriteLine("--- Extraction Complete! ---");
+    }
+
+    public static void ExtractLocations(string exportTypeString)
+    {
+      Console.Out.WriteLine("--- Starting Extraction of Locations as " + exportTypeString + " ---");
+      new LocationExtractor().Extract();
+      Console.Out.WriteLine("--- Extraction Complete! ---");
+    }
+
+    public static void DumpAllXml()
+    {
+      Console.Out.WriteLine("--- Starting Extraction of All Files as XML ---");
+      new BinaryDumper().Extract();
+      Console.Out.WriteLine("--- Extraction Complete! ---");
     }
   }
 }
