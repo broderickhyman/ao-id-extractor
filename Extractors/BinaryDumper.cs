@@ -23,10 +23,14 @@ namespace ao_id_extractor.Extractors
       var allFiles = Directory.GetFiles(GetBinFilePath(), "*.bin", SearchOption.AllDirectories);
       var outFiles = (string[])allFiles.Clone();
       for (var i = 0; i < outFiles.Length; i++)
+      {
         outFiles[i] = outFiles[i].Remove(0, outFiles[i].LastIndexOf("GameData\\") + "GameData\\".Length);
+      }
 
       for (var i = 0; i < allFiles.Length; i++)
+      {
         DecryptBinFile(allFiles[i], outFiles[i]);
+      }
     }
 
     private string GetBinFilePath()
@@ -37,6 +41,13 @@ namespace ao_id_extractor.Extractors
     private string DecryptBinFile(string binFile, string subdir)
     {
       var binFileWOE = Path.GetFileNameWithoutExtension(binFile);
+
+      // Skip profanity as it has no value for us
+      if (binFileWOE.StartsWith("profanity", StringComparison.OrdinalIgnoreCase))
+      {
+        return "";
+      }
+
       var outSubdirs = Path.GetDirectoryName(Path.Combine(Program.OutputFolderPath, subdir));
 
       Console.Out.WriteLine("Extracting " + binFileWOE + ".bin...");
